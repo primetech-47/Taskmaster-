@@ -1,1 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskMaster - Task Management</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>TaskMaster</h1>
+      <p>Your personal task management assistant</p>
+    </header>
 
+    <div id="auth-section" class="auth-section">
+      <h2>Sign Up / Login</h2>
+      <input type="email" id="email" placeholder="Enter Email" required>
+      <input type="password" id="password" placeholder="Enter Password" required>
+      <div class="auth-buttons">
+        <button id="signup-btn" class="auth-btn">Sign Up</button>
+        <button id="login-btn" class="auth-btn">Log In</button>
+      </div>
+    </div>
+
+    <div id="task-section" class="task-section" style="display: none;">
+      <h2>Welcome, <span id="user-name"></span></h2>
+      <div class="task-inputs">
+        <input type="text" id="task-title" placeholder="Task Title" required>
+        <textarea id="task-desc" placeholder="Task Description"></textarea>
+        <input type="datetime-local" id="task-deadline" required>
+        <select id="task-priority">
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+        <button id="add-task-btn" class="task-btn">Add Task</button>
+      </div>
+
+      <div id="task-list" class="task-list"></div>
+      <button id="logout-btn" class="task-btn logout-btn">Log Out</button>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
