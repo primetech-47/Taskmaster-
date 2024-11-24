@@ -112,3 +112,22 @@ onAuthStateChanged(auth, (user) => {
     displayTasks();
   }
 });
+
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { getAuth } from "firebase/auth";
+
+const auth = getAuth();
+const provider = new GoogleAuthProvider();
+
+function signInWithGoogle() {
+  signInWithPopup(auth, provider)
+    .then((result) => {
+      // Google sign-in successful
+      const user = result.user;
+      console.log(user);
+    })
+    .catch((error) => {
+      // Handle Errors here.
+      console.error(error);
+    });
+}
