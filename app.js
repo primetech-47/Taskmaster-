@@ -1,133 +1,233 @@
-// Import Firebase SDK
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+const API_URL = "http://localhost:3000/api";
+fetchTasks();
+async function signup() {
+    const name = document.getElementById('signupName').value;
+    const email = document.getElementById('signupEmail').value;
+    const password = document.getElementById('signupPassword').value;
 
-// Firebase Config
-const firebaseConfig = {
-  apiKey: "AIzaSyDxy9WWzCsb1AobR-BWeu4kiJ6ZegUTuIA",
-  authDomain: "taskmaster-114dc.firebaseapp.com",
-  projectId: "taskmaster-114dc",
-  storageBucket: "taskmaster-114dc.appspot.com",
-  messagingSenderId: "878309106162",
-  appId: "1:878309106162:web:cdde4cda56455483a98b6b",
-};
+    if (!name || !email || !password) {
+        alert("All fields are required!");
+        return;
+    }
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+    try {
+        const response = await fetch(`${API_URL}/auth/signup`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, email, password })
+        });
 
-// Sign-Up Functionality
-document.getElementById("signup-btn").addEventListener("click", async () => {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
-  try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    alert("Signed Up Successfully");
-  } catch (error) {
-    alert(`Error: ${error.message}`);
-  }
-});
-
-// Login Functionality
-document.getElementById("login-btn").addEventListener("click", async () => {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    document.getElementById("auth-section").style.display = "none";
-    document.getElementById("task-section").style.display = "block";
-    document.getElementById("user-name").textContent = userCredential.user.email;
-    displayTasks();
-  } catch (error) {
-    alert(`Error: ${error.message}`);
-  }
-});
-
-// Logout Functionality
-document.getElementById("logout-btn").addEventListener("click", async () => {
-  try {
-    await signOut(auth);
-    alert("Logged Out Successfully");
-    document.getElementById("auth-section").style.display = "block";
-    document.getElementById("task-section").style.display = "none";
-  } catch (error) {
-    alert(`Error: ${error.message}`);
-  }
-});
-
-// Add Task Functionality
-document.getElementById("add-task-btn").addEventListener("click", async () => {
-  const title = document.getElementById("task-title").value;
-  const description = document.getElementById("task-desc").value;
-  const deadline = document.getElementById("task-deadline").value;
-  const priority = document.getElementById("task-priority").value;
-
-  if (!auth.currentUser) return alert("Please log in first.");
-
-  try {
-    await addDoc(collection(db, "tasks"), {
-      title,
-      description,
-      deadline,
-      priority,
-      userId: auth.currentUser.uid,
-    });
-    alert("Task Added Successfully");
-    displayTasks();
-  } catch (error) {
-    alert(`Error: ${error.message}`);
-  }
-});
-
-// Display Tasks
-async function displayTasks() {
-  const taskList = document.getElementById("task-list");
-  taskList.innerHTML = ""; // Clear previous tasks
-
-  if (!auth.currentUser) return;
-
-  const q = query(collection(db, "tasks"), where("userId", "==", auth.currentUser.uid));
-  const querySnapshot = await getDocs(q);
-
-  querySnapshot.forEach((doc) => {
-    const task = doc.data();
-    taskList.innerHTML += `
-      <div>
-        <h3>${task.title}</h3>
-        <p>${task.description}</p>
-        <p>Deadline: ${task.deadline}</p>
-        <p>Priority: ${task.priority}</p>
-      </div>
-    `;
-  });
+        const data = await response.json();
+        if (response.ok) {
+            alert(data.msg);
+        } else {
+            alert(data.msg || "Signup failed!");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("An error occurred while signing up!");
+    }
 }
 
-// Auto-Fetch Tasks on Login
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    displayTasks();
-  }
-});
+async function login() {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
 
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { getAuth } from "firebase/auth";
+    if (!email || !password) {
+        alert("All fields are required!");
+        return;
+    }
 
-const auth = getAuth();
-const provider = new GoogleAuthProvider();
+    try {
+        const response = await fetch(`${API_URL}/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
+        });
 
-function signInWithGoogle() {
-  signInWithPopup(auth, provider)
-    .then((result) => {
-      // Google sign-in successful
-      const user = result.user;
-      console.log(user);
-    })
-    .catch((error) => {
-      // Handle Errors here.
-      console.error(error);
+        const data = await response.json();
+        if (response.ok) {
+            localStorage.setItem("token", data.token);
+            alert(data.msg);
+            getProfile();
+            fetchTasks();
+        } else {
+            alert(data.msg || "Login failed!");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("An error occurred while logging in!");
+    }
+}
+
+async function addTask() {
+    const token = localStorage.getItem("token");
+    if (!token) {
+        alert("Please log in to add tasks.");
+        return;
+    }
+
+    const taskName = document.getElementById('taskName').value;
+    const taskDescription = document.getElementById('taskDescription').value;
+    const taskDueDate = document.getElementById('taskDueDate').value;
+    const taskPriority = document.getElementById('taskPriority').value;
+
+    if (!taskName.trim()) {
+        alert("Task name is required!");
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/tasks`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ taskName, taskDescription, taskDueDate, taskPriority })
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            alert("Task added successfully!");
+            fetchTasks();
+        } else {
+            alert(data.msg || "Failed to add task!");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("An error occurred while adding the task!");
+    }
+}
+
+async function getProfile() {
+    const token = localStorage.getItem("token");
+    if (!token) {
+        alert("Please log in to view your profile.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/profile`, {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            console.log(data.user);
+            alert(`Welcome, ${data.user.name}`);
+        } else {
+            alert(data.msg || "Failed to fetch profile!");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("An error occurred while fetching the profile!");
+    }
+}
+
+async function fetchTasks() {
+    try {
+        const response = await fetch(`${API_URL}/tasks`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        });
+        const data = await response.json();
+        if (response.ok) {
+            displayTasks(data.tasks);
+        } else {
+            alert(data.msg || "Failed to fetch tasks.");
+        }
+    } catch (error) {
+        console.error("Error fetching tasks:", error);
+    }
+}
+
+// Display tasks on the page
+function displayTasks(tasks) {
+    const taskList = document.getElementById("taskList");
+    taskList.innerHTML = ""; // Clear previous tasks
+    tasks.forEach((task) => {
+        const listItem = document.createElement("li");
+        listItem.innerHTML = `
+            <strong>${task.name}</strong><br>
+            <em>Description:</em> ${task.description} <br>
+            <em>Priority:</em> ${task.priority || 'Medium'} <br>
+            <em>Due Date:</em> ${task.dueDate || 'Not Set'} <br>
+            <em>Status:</em> ${task.status || 'Pending'} <br>
+            <button onclick="deleteTask('${task._id}')">Delete</button>
+            <button onclick="updateTaskStatus('${task._id}')">${task.status === 'done' ? 'Mark as Pending' : 'Mark as Done'}</button>
+        `;
+        taskList.appendChild(listItem);
     });
 }
+
+// Update task status to 'done'
+async function updateTaskStatus(taskId) {
+    const token = localStorage.getItem("token");
+    if (!token) {
+        alert("Please log in to update task status.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/tasks/${taskId}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            alert("Task status updated!");
+
+            // Toggle the task's styles based on its new status
+            if (data.task.status === "done") {
+                taskElement.classList.add("completed");
+            } else {
+                taskElement.classList.remove("completed");
+            }
+
+            fetchTasks();  // Refresh the task list
+        } else {
+            alert(data.msg || "Failed to update task status.");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("An error occurred while updating task status!");
+    }
+}
+
+// Delete task
+async function deleteTask(taskId) {
+    const token = localStorage.getItem("token");
+    if (!token) {
+        alert("Please log in to delete tasks.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/tasks/${taskId}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            alert("Task deleted successfully!");
+            fetchTasks();  // Refresh the task list
+        } else {
+            alert(data.msg || "Failed to delete task.");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("An error occurred while deleting the task!");
+    }
+}
+
+
