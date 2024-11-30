@@ -1,26 +1,34 @@
 
+
+@keyframes cyclingColors {
+    0% { background: linear-gradient(90deg, #ff7eb3, #ff758c); }
+    25% { background: linear-gradient(90deg, #758cff, #7eafff); }
+    50% { background: linear-gradient(90deg, #7effb3, #75ffcc); }
+    75% { background: linear-gradient(90deg, #ffeb75, #ffb37e); }
+    100% { background: linear-gradient(90deg, #ff7eb3, #ff758c); }
+}
+
 .taskmaster-link {
     display: inline-block;
     text-decoration: none;
     font-size: 1.5rem;
     font-weight: bold;
     color: white;
-    background: linear-gradient(90deg, #ff7eb3, #ff758c);
     padding: 15px 30px;
     border-radius: 30px;
     transition: all 0.3s ease;
-    box-shadow: 0 8px 15px rgba(255, 117, 140, 0.3);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+    animation: cyclingColors 5s infinite; /* Cycling animation */
 }
 
 .taskmaster-link:hover {
-    background: linear-gradient(90deg, #ff758c, #ff7eb3);
-    box-shadow: 0 15px 20px rgba(255, 117, 140, 0.4);
+    box-shadow: 0 15px 20px rgba(0, 0, 0, 0.3);
     transform: translateY(-3px);
 }
 
 .taskmaster-link:active {
     transform: translateY(2px);
-    box-shadow: 0 10px 15px rgba(255, 117, 140, 0.3);
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
 }
 
 .auth-container{
